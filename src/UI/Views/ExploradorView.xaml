@@ -1,0 +1,302 @@
+<UserControl x:Class="SWDataExtractor.UI.Views.ExploradorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:SWDataExtractor.UI.Converters"
+             xmlns:app="clr-namespace:SWDataExtractor.Application.Servicios;assembly=SWDataExtractor.Application">
+
+    <UserControl.Resources>
+        <conv:EstadoColorConverter x:Key="EstadoColor"/>
+        <conv:NuloAVisibilidadConverter x:Key="NullVis"/>
+        <conv:BoolInversoConverter x:Key="BoolInverso"/>
+        <conv:NoEsNuloConverter x:Key="NoEsNulo"/>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <!-- Barra superior -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource ControlFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1"
+                Padding="6">
+            <WrapPanel>
+                <Button Command="{Binding ActualizarCommand}" Content="↺ Actualizar análisis" Margin="2"/>
+                <Button Command="{Binding ExtraerTodosCommand}" Content="⏬ Extraer todos" Margin="2"
+                        ToolTip="Extrae todos los archivos pendientes o con error de todas las carpetas, uno por uno (estable y cancelable)."/>
+                <Button Command="{Binding CancelarLoteCommand}" Content="⛔ Cancelar" Margin="2"
+                        Visibility="{Binding LoteEnCurso, Converter={StaticResource BoolVis}}"/>
+                <Button Command="{Binding ExportarReportesCommand}" Content="📥 Exportar reportes" Margin="2"
+                        ToolTip="Exporta duplicados, referencias rotas, posibles versiones y cumplimiento a un Excel."/>
+                <TextBlock Text="{Binding MensajeEstado}" VerticalAlignment="Center" Margin="12,0"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                <ProgressBar Width="160" Height="12" Margin="8,0" VerticalAlignment="Center"
+                             Maximum="{Binding ProgresoTotal}" Value="{Binding ProgresoActual, Mode=OneWay}"
+                             IsIndeterminate="{Binding LoteEnCurso, Converter={StaticResource BoolInverso}}"
+                             Visibility="{Binding EstaCargando, Converter={StaticResource BoolVis}}"/>
+            </WrapPanel>
+        </Border>
+
+        <TabControl Margin="8">
+
+            <!-- ── Carpetas ─────────────────────────────────────────────────── -->
+            <TabItem Header="📁 Carpetas">
+                <DockPanel>
+                    <!-- Gestión de carpetas movida aquí desde Configuración: donde se VEN las
+                         carpetas es donde se administran. Quitar solo aplica a carpetas RAÍZ. -->
+                    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <Button Command="{Binding AgregarCarpetasCommand}" Content="➕ Agregar carpetas…" Margin="2"
+                                ToolTip="Agrega carpetas raíz de escaneo y las indexa de inmediato."/>
+                        <Button Command="{Binding QuitarCarpetaCommand}" Content="➖ Quitar carpeta" Margin="2"
+                                IsEnabled="{Binding CarpetaEsRaiz}"
+                                ToolTip="Quita la carpeta RAÍZ seleccionada del escaneo (pregunta si borrar sus datos). Las subcarpetas no se pueden quitar individualmente."/>
+                        <Button Command="{Binding PurgarOmitidosCommand}" Content="🗑 Purgar omitidos" Margin="2"
+                                ToolTip="Elimina de la BD los archivos que ya no existen en disco."/>
+                        <Separator Margin="6,2"/>
+                        <Button Command="{Binding ExtraerCarpetaCommand}" Content="▶ Extraer esta carpeta" Margin="2"
+                                IsEnabled="{Binding CarpetaSeleccionada, Converter={StaticResource NoEsNulo}}"
+                                ToolTip="Extrae los pendientes de la carpeta seleccionada y TODAS sus subcarpetas, uno por uno."/>
+                    </WrapPanel>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280" MinWidth="180"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TreeView x:Name="ArbolCarpetas" Grid.Column="0"
+                              ItemsSource="{Binding Carpetas}"
+                              SelectedItemChanged="ArbolCarpetas_SelectedItemChanged"
+                              BorderThickness="1"
+                              BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                              Background="{DynamicResource ControlFillColorDefaultBrush}">
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type app:NodoCarpeta}" ItemsSource="{Binding Hijas}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📁 " />
+                                    <TextBlock Text="{Binding Nombre}"/>
+                                    <TextBlock Text="{Binding TotalArchivos, StringFormat=' ({0})'}"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+
+                    <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                  Background="{DynamicResource DividerStrokeColorDefaultBrush}" ShowsPreview="True"/>
+
+                    <DataGrid Grid.Column="2" ItemsSource="{Binding ArchivosCarpeta}"
+                              AutoGenerateColumns="False" IsReadOnly="True"
+                              MouseDoubleClick="Grid_MouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Abrir" Width="70" MinWidth="70" MaxWidth="70"
+                                                    CanUserResize="False" CanUserSort="False">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="📄" Padding="4,0" MinWidth="0" Margin="0,0,2,0"
+                                                    ToolTip="Abrir archivo"
+                                                    Command="{Binding DataContext.AbrirArchivoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding Ruta}"/>
+                                            <Button Content="📂" Padding="4,0" MinWidth="0"
+                                                    ToolTip="Abrir carpeta contenedora"
+                                                    Command="{Binding DataContext.AbrirCarpetaContenedoraCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding Ruta}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="240"/>
+                            <DataGridTemplateColumn Header="Estado" Width="100" SortMemberPath="EstadoRapido">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding EstadoRapido}" FontWeight="SemiBold" Margin="4,0"
+                                                   Foreground="{Binding EstadoRapido, Converter={StaticResource EstadoColor}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Tipo"     Binding="{Binding Tipo}" Width="80"/>
+                            <DataGridTextColumn Header="Tamaño"   Binding="{Binding TamanoBytes, StringFormat={}{0:N0} B}" Width="90"/>
+                            <DataGridTextColumn Header="Última mod." Binding="{Binding FechaModDisco}" Width="130"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ── Duplicados exactos ───────────────────────────────────────── -->
+            <TabItem Header="♊ Duplicados">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Margin="4,4,4,8" FontWeight="SemiBold"
+                               Foreground="#C77D1F" Text="{Binding EspacioDesperdiciado}"
+                               Visibility="{Binding EspacioDesperdiciado, Converter={StaticResource NullVis}}"/>
+                    <DataGrid ItemsSource="{Binding Duplicados}" AutoGenerateColumns="False" IsReadOnly="True"
+                              MouseDoubleClick="Grid_MouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Grupo"  Binding="{Binding Grupo}"  Width="55"/>
+                            <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="240"/>
+                            <DataGridTextColumn Header="Tamaño" Binding="{Binding TamanoBytes, StringFormat={}{0:N0} B}" Width="95"/>
+                            <DataGridTextColumn Header="Última mod." Binding="{Binding Fecha}" Width="130"/>
+                            <DataGridTextColumn Header="Ruta"   Binding="{Binding Ruta}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ── Referencias rotas ────────────────────────────────────────── -->
+            <TabItem Header="⛓ Referencias rotas">
+                <DataGrid ItemsSource="{Binding Rotas}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Ensamble"          Binding="{Binding EnsambleNombre}"   Width="220"/>
+                        <DataGridTextColumn Header="Referencia perdida" Binding="{Binding RutaReferenciada}" Width="*"/>
+                        <DataGridTextColumn Header="Cantidad"          Binding="{Binding Cantidad}"         Width="75"/>
+                        <DataGridTextColumn Header="Ruta del ensamble" Binding="{Binding EnsambleRuta}"     Width="280"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- ── Posibles versiones ───────────────────────────────────────── -->
+            <TabItem Header="🕐 Posibles versiones">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Margin="4,4,4,8" TextWrapping="Wrap" FontSize="11"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="Agrupación heurística por nombre (quita sufijos _v2, _final, (3), fechas…). Es una sugerencia para revisión manual — la fila marcada ✓ es la modificada más recientemente de cada grupo."/>
+                    <DataGrid ItemsSource="{Binding Versiones}" AutoGenerateColumns="False" IsReadOnly="True"
+                              MouseDoubleClick="Grid_MouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Grupo"       Binding="{Binding Grupo}"      Width="55"/>
+                            <DataGridTextColumn Header="Nombre base" Binding="{Binding NombreBase}" Width="160"/>
+                            <DataGridTemplateColumn Header="Más reciente" Width="95" SortMemberPath="MasReciente">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="✓" FontWeight="Bold" HorizontalAlignment="Center"
+                                                   Foreground="#2FA36B"
+                                                   Visibility="{Binding MasReciente, Converter={StaticResource BoolVis}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Nombre"      Binding="{Binding Nombre}" Width="220"/>
+                            <DataGridTextColumn Header="Última mod." Binding="{Binding Fecha}"  Width="130"/>
+                            <DataGridTextColumn Header="Ruta"        Binding="{Binding Ruta}"   Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ── Cumplimiento del diccionario de propiedades ──────────────── -->
+            <TabItem Header="✔ Cumplimiento">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Margin="4,4,4,8" TextWrapping="Wrap" FontSize="11"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="Archivos extraídos que no tienen valor para las propiedades marcadas como obligatorias en el diccionario de la empresa. Si está vacío y no definiste propiedades obligatorias, no hay nada que verificar."/>
+                    <DataGrid ItemsSource="{Binding Incumplimientos}" AutoGenerateColumns="False" IsReadOnly="True"
+                              MouseDoubleClick="Grid_MouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Archivo"            Binding="{Binding Nombre}"             Width="240"/>
+                            <DataGridTextColumn Header="Propiedad faltante" Binding="{Binding PropiedadFaltante}"  Width="180"/>
+                            <DataGridTextColumn Header="Ruta"               Binding="{Binding Ruta}"               Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- ── Dashboard de proyecto ────────────────────────────────────── -->
+            <TabItem Header="📊 Dashboard de proyecto">
+                <DockPanel>
+                    <WrapPanel DockPanel.Dock="Top" Margin="4">
+                        <TextBlock Text="Ensamble top-level:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding EnsamblesTop}" SelectedItem="{Binding EnsambleSeleccionado}"
+                                  DisplayMemberPath="Nombre" Width="320" Margin="0,0,8,0"/>
+                        <Button Content="📊 Analizar" Command="{Binding AnalizarProyectoCommand}"/>
+                    </WrapPanel>
+
+                    <!-- Tarjetas de salud -->
+                    <WrapPanel DockPanel.Dock="Top" Margin="4"
+                               Visibility="{Binding Salud, Converter={StaticResource NullVis}}">
+                        <WrapPanel.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="CornerRadius" Value="6"/>
+                                <Setter Property="Padding" Value="14,8"/>
+                                <Setter Property="Margin" Value="0,0,8,8"/>
+                            </Style>
+                            <Style TargetType="TextBlock" x:Key="Cifra">
+                                <Setter Property="FontSize" Value="20"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                            </Style>
+                            <Style TargetType="TextBlock" x:Key="Etiqueta">
+                                <Setter Property="FontSize" Value="11"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                            </Style>
+                        </WrapPanel.Resources>
+                        <Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Cifra}" Text="{Binding Salud.TotalComponentes}"/>
+                                <TextBlock Style="{StaticResource Etiqueta}" Text="Componentes"/>
+                            </StackPanel>
+                        </Border>
+                        <Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Cifra}" Text="{Binding Salud.Ok}" Foreground="#2FA36B"/>
+                                <TextBlock Style="{StaticResource Etiqueta}" Text="Extraídos OK"/>
+                            </StackPanel>
+                        </Border>
+                        <Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Cifra}" Text="{Binding Salud.Pendientes}" Foreground="#3F8CD8"/>
+                                <TextBlock Style="{StaticResource Etiqueta}" Text="Pendientes"/>
+                            </StackPanel>
+                        </Border>
+                        <Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Cifra}" Text="{Binding Salud.ConError}" Foreground="#E5484D"/>
+                                <TextBlock Style="{StaticResource Etiqueta}" Text="Con error"/>
+                            </StackPanel>
+                        </Border>
+                        <Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Cifra}" Text="{Binding Salud.ReferenciasRotas}" Foreground="#C0392B"/>
+                                <TextBlock Style="{StaticResource Etiqueta}" Text="Refs. rotas"/>
+                            </StackPanel>
+                        </Border>
+                        <Border>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Cifra}" Text="{Binding Salud.Toolbox}" Foreground="#C77D1F"/>
+                                <TextBlock Style="{StaticResource Etiqueta}" Text="Tornillería"/>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+
+                    <DataGrid ItemsSource="{Binding BomProyecto}" AutoGenerateColumns="False" IsReadOnly="True" Margin="4"
+                              MouseDoubleClick="Grid_MouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nivel"  Binding="{Binding Item.Nivel}"  Width="50"/>
+                            <DataGridTextColumn Header="Nombre" Binding="{Binding Item.Nombre}" Width="240"/>
+                            <DataGridTextColumn Header="Configuración" Binding="{Binding Item.ConfiguracionUsada}" Width="115"/>
+                            <DataGridTextColumn Header="Cant."  Binding="{Binding Item.CantidadEnPadre}" Width="55"/>
+                            <DataGridTemplateColumn Header="Extr. rápida" Width="100" SortMemberPath="EstadoRapido">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding EstadoRapido}" FontWeight="SemiBold" Margin="4,0"
+                                                   Foreground="{Binding EstadoRapido, Converter={StaticResource EstadoColor}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Extr. profunda" Width="105" SortMemberPath="EstadoProfundo">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding EstadoProfundo}" FontWeight="SemiBold" Margin="4,0"
+                                                   Foreground="{Binding EstadoProfundo, Converter={StaticResource EstadoColor}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Ruta" Binding="{Binding Item.Ruta}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</UserControl>

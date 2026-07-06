@@ -1,0 +1,205 @@
+<UserControl x:Class="SWDataExtractor.UI.Views.ArchivosView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:conv="clr-namespace:SWDataExtractor.UI.Converters">
+
+    <UserControl.Resources>
+        <conv:EstadoColorConverter x:Key="EstadoColor"/>
+        <conv:BoolADimensionConverter x:Key="BoolADim"/>
+        <conv:FechaLegibleConverter x:Key="FechaLegible"/>
+        <conv:TamanoLegibleConverter x:Key="TamanoLegible"/>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <!-- Barra de herramientas: WrapPanel en vez de ToolBar — en ventanas angostas los
+             controles pasan a una segunda línea en vez de esconderse detrás de la flecha de
+             overflow de ToolBar (que dejaba invisibles los filtros sin aviso). -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource ControlFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1"
+                Padding="6">
+            <WrapPanel Orientation="Horizontal">
+                <Button Command="{Binding EscanearCommand}"    Content="🔍 Escanear"    Margin="2"/>
+                <Button Command="{Binding CargarCommand}"      Content="↺ Recargar"     Margin="2"/>
+                <Button Command="{Binding ExtraerSeleccionadoCommand}" Content="▶ Extraer (rápido)" Margin="2"
+                        IsEnabled="{Binding HaySeleccion}"
+                        Background="{DynamicResource AccentFillColorDefaultBrush}"
+                        Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                        FontWeight="SemiBold"/>
+                <Button Command="{Binding ExtraerProfundoCommand}"    Content="▶▶ Extraer profundo (SW)" Margin="2"
+                        IsEnabled="{Binding HaySeleccion}"
+                        ToolTip="Extracción profunda con SolidWorks abierto — features, roscas, masa. No requiere clave DocManager."/>
+                <!-- La extracción por lote ("Extraer todos" / por carpeta) vive en el Explorador -->
+                <Button Content="✏ Editar propiedades"
+                        IsEnabled="{Binding HaySeleccion}"
+                        Visibility="{Binding Funcionalidades.EscrituraPropiedades, Converter={StaticResource BoolVis}}"
+                        Click="EditarPropiedades_Click" Margin="2"/>
+                <StackPanel Orientation="Horizontal" Margin="10,2,2,2">
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,4,0" Text="Tipo:"/>
+                    <ComboBox ItemsSource="{Binding OpcionesTipo}"
+                              SelectedItem="{Binding FiltroTipo}" Width="90" Margin="2"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="2">
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,4,0" Text="Estado:"/>
+                    <ComboBox ItemsSource="{Binding OpcionesEstado}"
+                              SelectedItem="{Binding FiltroEstado}" Width="130" Margin="2"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="2">
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,4,0" Text="Buscar:"/>
+                    <TextBox Text="{Binding FiltroTexto, UpdateSourceTrigger=PropertyChanged}"
+                             Width="160" MinWidth="100" Margin="2" VerticalContentAlignment="Center"/>
+                </StackPanel>
+                <CheckBox Content="🗂 Agrupar por carpeta" IsChecked="{Binding AgruparPorCarpeta}"
+                          VerticalAlignment="Center" Margin="8,2,2,2"
+                          ToolTip="Muestra los archivos agrupados por su carpeta contenedora (encabezados colapsables)"/>
+                <Button Command="{Binding LimpiarFiltrosCommand}" Content="✕ Limpiar" Margin="2"/>
+            </WrapPanel>
+        </Border>
+
+        <!-- Barra de estado -->
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="{Binding MensajeEstado}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <ProgressBar Width="140" Height="14" IsIndeterminate="True"
+                             Visibility="{Binding EstaCargando, Converter={StaticResource BoolVis}}"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- Indicador de selección: qué archivo está activo en el panel de detalle -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource ControlFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1"
+                Padding="10,6" Visibility="{Binding HaySeleccion, Converter={StaticResource BoolVis}}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Seleccionado: " FontWeight="SemiBold" Opacity="0.7"/>
+                <TextBlock Text="{Binding ArchivoSeleccionado.Nombre}" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding ArchivosSeleccionados.Count, StringFormat='  ({0} en total)'}" Opacity="0.6"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Cuerpo: grilla de archivos (izquierda) + panel de detalle (derecha) -->
+        <Grid>
+            <!-- El panel de detalle y su separador se colapsan por completo cuando no hay
+                 selección: la grilla usa todo el ancho al abrir la app (antes reservaba
+                 espacio para un panel vacío y tapaba columnas y botones de la grilla). -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.3*" MinWidth="260"/>
+                <ColumnDefinition Width="{Binding HaySeleccion, Converter={StaticResource BoolADim}, ConverterParameter=separador}"/>
+                <ColumnDefinition Width="{Binding HaySeleccion, Converter={StaticResource BoolADim}, ConverterParameter=detalle}"
+                                  MinWidth="{Binding HaySeleccion, Converter={StaticResource BoolADim}, ConverterParameter=minimo}"/>
+            </Grid.ColumnDefinitions>
+
+            <DataGrid Grid.Column="0"
+                      ItemsSource="{Binding ArchivosVista}"
+                      SelectedItem="{Binding ArchivoSeleccionado}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      SelectionMode="Extended"
+                      SelectionChanged="DataGrid_SelectionChanged"
+                      MouseDoubleClick="DataGrid_MouseDoubleClick"
+                      PreviewMouseRightButtonDown="DataGrid_PreviewMouseRightButtonDown"
+                      GridLinesVisibility="Horizontal"
+                      CanUserResizeRows="False"
+                      VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+                <!-- Encabezado por carpeta (solo con "Agrupar por carpeta" activo): fila
+                     delgada colapsable con la ruta y el conteo. Misma grilla y columnas. -->
+                <DataGrid.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.ContainerStyle>
+                            <Style TargetType="GroupItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="GroupItem">
+                                            <StackPanel>
+                                                <Expander IsExpanded="True"
+                                                          Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                          BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                                                          BorderThickness="0,0,0,1"
+                                                          Padding="4,2">
+                                                    <Expander.Header>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="📁 "/>
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                            <TextBlock Text="{Binding ItemCount, StringFormat=' ({0})'}"
+                                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                                        </StackPanel>
+                                                    </Expander.Header>
+                                                    <ItemsPresenter/>
+                                                </Expander>
+                                            </StackPanel>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GroupStyle.ContainerStyle>
+                    </GroupStyle>
+                </DataGrid.GroupStyle>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Abrir" Width="70" MinWidth="70" MaxWidth="70"
+                                            CanUserResize="False" CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="📄" ToolTip="Abrir archivo con la aplicación asociada"
+                                            Padding="4,0" MinWidth="0" Margin="0,0,2,0"
+                                            Command="{Binding DataContext.AbrirArchivoCommand,
+                                                RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"/>
+                                    <Button Content="📂" ToolTip="Abrir carpeta contenedora en el Explorador"
+                                            Padding="4,0" MinWidth="0"
+                                            Command="{Binding DataContext.AbrirCarpetaContenedoraCommand,
+                                                RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Nombre"   Binding="{Binding Nombre}"  Width="200"/>
+                    <DataGridTemplateColumn Header="Estado" Width="110" SortMemberPath="EstadoRapido">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <!-- ToolTip con el porqué del error: sin esto un estado "error"
+                                     no dice su causa sin ir a la BD o al log. WPF omite el
+                                     tooltip cuando MensajeError es null. -->
+                                <TextBlock Text="{Binding EstadoRapido}"
+                                           Foreground="{Binding EstadoRapido, Converter={StaticResource EstadoColor}}"
+                                           FontWeight="SemiBold" Margin="4,0"
+                                           ToolTip="{Binding MensajeError}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Tipo"     Binding="{Binding Tipo}"    Width="80"/>
+                    <DataGridTextColumn Header="Versión SW" Binding="{Binding VersionSw}" Width="80"/>
+                    <DataGridTextColumn Header="Autor"    Binding="{Binding Autor}"   Width="110"/>
+                    <DataGridTextColumn Header="Tamaño"   Binding="{Binding TamanoBytes, Converter={StaticResource TamanoLegible}}" Width="85"/>
+                    <DataGridTextColumn Header="Última mod." Binding="{Binding FechaModDisco, Converter={StaticResource FechaLegible}}" Width="125"/>
+                    <DataGridTextColumn Header="Ruta"     Binding="{Binding Ruta}"    Width="*"/>
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="📄 Abrir archivo"
+                                  Command="{Binding PlacementTarget.DataContext.AbrirArchivoCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        <MenuItem Header="📂 Abrir carpeta contenedora"
+                                  Command="{Binding PlacementTarget.DataContext.AbrirCarpetaContenedoraCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        <Separator/>
+                        <MenuItem Header="▶ Extraer (rápido)"
+                                  Command="{Binding PlacementTarget.DataContext.ExtraerSeleccionadoCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        <MenuItem Header="▶▶ Extraer profundo (SW)"
+                                  Command="{Binding PlacementTarget.DataContext.ExtraerProfundoCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                          Background="{DynamicResource DividerStrokeColorDefaultBrush}" ShowsPreview="True"
+                          Visibility="{Binding HaySeleccion, Converter={StaticResource BoolVis}}"/>
+
+            <!-- Panel de detalle: se llena en el code-behind con la DetalleArchivoView inyectada.
+                 La columna entera se colapsa sin selección (ver ColumnDefinitions). -->
+            <ContentPresenter x:Name="DetallePresenter" Grid.Column="2"/>
+        </Grid>
+    </DockPanel>
+</UserControl>

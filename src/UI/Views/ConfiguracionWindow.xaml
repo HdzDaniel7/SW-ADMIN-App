@@ -1,0 +1,208 @@
+<ui:FluentWindow x:Class="SWDataExtractor.UI.Views.ConfiguracionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="Configuración" Height="560" Width="580"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowBackdropType="None"
+        Background="{DynamicResource ApplicationBackgroundBrush}"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <!-- GroupBox no tiene estilo propio de WPF-UI (queda con el bisel gris clásico de
+             Windows y texto negro por defecto) — plantilla propia tipo "card" para que
+             combine con el resto de la app en los dos temas. -->
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupBox">
+                        <Border Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="6">
+                            <StackPanel Margin="{TemplateBinding Padding}">
+                                <TextBlock Text="{TemplateBinding Header}" FontWeight="SemiBold" Margin="0,0,0,10"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                <ContentPresenter/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="Padding" Value="0,4,0,2"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="{DynamicResource SwdeBarraTituloBrush}"
+                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1"/>
+        <ui:TitleBar Grid.Row="0" Title="Configuración"/>
+        <DockPanel Grid.Row="1" Margin="12">
+        <!-- Botones de aceptar/cerrar -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="Cerrar" Width="90" Click="Cerrar_Click"/>
+        </StackPanel>
+
+        <TabControl>
+            <!-- ── Pestaña: Configuración actual ─────────────────────────── -->
+            <TabItem Header="Configuración actual">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="4">
+                        <GroupBox Header="Carpetas de escaneo">
+                            <StackPanel>
+                                <Label Content="Carpetas raíz que se indexarán al escanear (se guardan en la BD):"/>
+                                <ListBox x:Name="ListaCarpetas" Height="100" Margin="0,0,0,4"
+                                         SelectionMode="Single"/>
+                                <WrapPanel>
+                                    <Button Content="➕ Agregar carpeta…" Margin="0,0,6,0"
+                                            Click="AgregarCarpeta_Click"/>
+                                    <Button Content="✕ Quitar seleccionada" Margin="0,0,6,0"
+                                            Click="QuitarCarpeta_Click"/>
+                                    <Button Content="💾 Guardar" Click="GuardarCarpetas_Click"
+                                            FontWeight="SemiBold" Margin="0,0,6,0"/>
+                                    <Button Content="🗑 Purgar omitidos de la BD" Click="PurgarOmitidos_Click"/>
+                                </WrapPanel>
+                                <TextBlock Text="Al guardar se re-escanea automáticamente: las carpetas quitadas se pueden purgar de la BD; las agregadas se indexan de inmediato."
+                                           TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,4,0,0"/>
+                                <TextBlock x:Name="TxtCarpetasMsg" Margin="0,4,0,0"
+                                           Foreground="#2FA36B" FontSize="11"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Extensiones incluidas">
+                            <TextBlock x:Name="TxtExtensiones" TextWrapping="Wrap"/>
+                        </GroupBox>
+
+                        <GroupBox Header="Patrones excluidos">
+                            <TextBlock x:Name="TxtPatrones" TextWrapping="Wrap"/>
+                        </GroupBox>
+
+                        <GroupBox Header="Base de datos">
+                            <TextBlock x:Name="TxtCadenaConexion" TextWrapping="Wrap"/>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ── Pestaña: Licencias ────────────────────────────────────── -->
+            <TabItem Header="Licencias">
+                <StackPanel Margin="4">
+                    <GroupBox Header="Clave DocManager (SwDmLicenseKey)">
+                        <StackPanel>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,8" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       Text="Licencia de SolidWorks Document Manager — habilita la extracción Rápida sin necesidad de tener SolidWorks abierto. Es opcional: sin clave, el modo Rápido usa SwApi (requiere SolidWorks abierto)."/>
+                            <Label Content="Nueva clave:"/>
+                            <PasswordBox x:Name="TxtLicenciaClave" MaxWidth="420" HorizontalAlignment="Left"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button Content="💾 Guardar clave" Click="GuardarLicencia_Click" Margin="0,0,8,0"/>
+                                <Button Content="✕ Quitar clave"   Click="QuitarLicencia_Click"/>
+                            </StackPanel>
+                            <TextBlock x:Name="TxtLicenciaEstado" Margin="0,8,0,0" TextWrapping="Wrap" FontSize="11"/>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+
+            <!-- ── Pestaña: Roles ────────────────────────────────────────── -->
+            <TabItem Header="Roles y permisos">
+                <StackPanel Margin="4">
+                    <GroupBox Header="Rol activo en esta máquina">
+                        <StackPanel>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,8"
+                                       Text="El rol controla qué funcionalidades están disponibles. Se persiste en la base de datos."/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" Grid.Column="0" Content="Rol seleccionado:"/>
+                                <ComboBox x:Name="CboRol" Grid.Row="0" Grid.Column="1"
+                                          Width="180" HorizontalAlignment="Left" Margin="0,4"/>
+                                <Label Grid.Row="1" Grid.Column="0" Content="Permisos efectivos:"/>
+                                <TextBlock x:Name="TxtPermisos" Grid.Row="1" Grid.Column="1"
+                                           Margin="0,6" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </Grid>
+                            <Button Content="Aplicar rol" Width="120" HorizontalAlignment="Left"
+                                    Margin="0,8,0,0" Click="AplicarRol_Click"/>
+                            <TextBlock x:Name="TxtRolResultado" Margin="0,6,0,0" Foreground="#2FA36B"/>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Descripción de roles">
+                        <StackPanel>
+                            <TextBlock TextWrapping="Wrap" Margin="0,2">
+                                <Bold>Visualizador:</Bold> Solo lectura. Puede ver archivos, BOM y exportar a Excel.
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap" Margin="0,2">
+                                <Bold>Operador:</Bold> Puede escanear, extraer y editar propiedades por lotes.
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap" Margin="0,2">
+                                <Bold>Administrador:</Bold> Acceso completo. Configura la aplicación y las tareas programadas.
+                            </TextBlock>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+
+            <!-- ── Pestaña: Tarea programada ─────────────────────────────── -->
+            <TabItem Header="Tarea programada">
+                <StackPanel Margin="4">
+                    <GroupBox Header="Estado de la tarea Windows">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Estado:" FontWeight="SemiBold" Margin="0,2,8,2"/>
+                                <TextBlock x:Name="TxtEstadoTarea" Grid.Row="0" Grid.Column="1" Margin="0,2"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Próxima ejecución:" FontWeight="SemiBold" Margin="0,2,8,2"/>
+                                <TextBlock x:Name="TxtProxima" Grid.Row="1" Grid.Column="1" Margin="0,2"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Última ejecución:" FontWeight="SemiBold" Margin="0,2,8,2"/>
+                                <TextBlock x:Name="TxtUltima" Grid.Row="2" Grid.Column="1" Margin="0,2"/>
+                            </Grid>
+                            <Button Content="Actualizar estado" Click="ActualizarEstadoTarea_Click" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Registrar / actualizar tarea">
+                        <StackPanel>
+                            <Label Content="Ruta al ejecutable SWDataExtractor.Batch.exe:"/>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="…" Width="30" Click="BuscarExe_Click" Margin="4,0,0,0"/>
+                                <TextBox x:Name="TxtRutaExe" IsReadOnly="False"/>
+                            </DockPanel>
+                            <Label Content="Hora de inicio diaria (HH:MM):"/>
+                            <TextBox x:Name="TxtHoraInicio" Text="07:00" Width="70" HorizontalAlignment="Left"/>
+                            <TextBlock Text="⚠ Requiere ejecutar la aplicación como Administrador."
+                                       Foreground="DarkOrange" FontSize="11" Margin="0,6,0,4" TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Registrar tarea" Click="RegistrarTarea_Click" Margin="0,0,8,0"/>
+                                <Button Content="Eliminar tarea"  Click="EliminarTarea_Click"  Margin="0,0,8,0"/>
+                                <Button Content="Ejecutar ahora"  Click="EjecutarAhora_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+        </DockPanel>
+    </Grid>
+</ui:FluentWindow>

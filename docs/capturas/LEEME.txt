@@ -1,0 +1,28 @@
+CAPTURAS DEL README
+===================
+
+El README.md de la raíz referencia estas 4 imágenes PNG. Para (re)generarlas:
+abre la app, acomoda la ventana a ~1400x900, y captura con Win+Shift+S.
+Guarda aquí con EXACTAMENTE estos nombres:
+
+1. pantalla-principal.png
+   Pestaña Archivos con la grilla agrupada por carpeta (varios grupos visibles),
+   un archivo seleccionado y el panel de detalle abierto a la derecha.
+
+2. explorador.png
+   Pestaña Explorador: árbol de carpetas a la izquierda con conteos y la grilla
+   de archivos de una carpeta a la derecha.
+
+3. detalle-bom.png
+   Panel de detalle de un ensamble (o un STEP extraído) con la pestaña BOM
+   activa mostrando el árbol indentado con cantidades.
+
+4. configuracion.png
+   Ventana Herramientas → Configuración (pestaña Carpetas o General).
+   OJO: si tienes clave DocManager configurada, NO la dejes visible.
+
+Consejos:
+- Usa el tema que prefieras, pero el mismo en las 4 capturas (consistencia).
+- Evita rutas personales sensibles a la vista si el repo será público
+  (usa una carpeta de proyectos de demostración).
+- PNG, no JPG (el texto de la UI se lee mejor).

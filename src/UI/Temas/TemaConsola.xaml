@@ -1,0 +1,20 @@
+<!-- Tema oscuro "Consola": azul grisáceo profundo, NO negro puro — feedback del usuario:
+     el negro #14171C original chocaba demasiado contra el texto y el resto de la UI.
+     Mismo mecanismo de intercambio que TemaPlanoTecnico.xaml (ver comentario allí). -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Claves de WPF-UI que sombreamos deliberadamente -->
+    <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#171D26"/>
+    <SolidColorBrush x:Key="WindowBackground" Color="#171D26"/>
+    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#202834"/>
+    <SolidColorBrush x:Key="DividerStrokeColorDefaultBrush" Color="#3B4A5F"/>
+
+    <!-- Pestaña activa (ver TemaPlanoTecnico.xaml) — opacidad mayor en oscuro para que se note -->
+    <SolidColorBrush x:Key="TabViewSelectedItemBorderBrush" Color="{DynamicResource SystemAccentColorSecondary}"/>
+    <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Opacity="0.25" Color="{DynamicResource SystemAccentColorSecondary}"/>
+
+    <!-- Claves propias de la app -->
+    <SolidColorBrush x:Key="SwdeBarraTituloBrush" Color="#1C242F"/>
+    <SolidColorBrush x:Key="SwdeFilaAlternaBrush" Color="#26303D"/>
+</ResourceDictionary>

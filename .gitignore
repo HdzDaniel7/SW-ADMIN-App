@@ -1,0 +1,39 @@
+# ── Salidas de compilación ──────────────────────────────────────────────
+bin/
+obj/
+TestResults/
+
+# ── Bases de datos locales ──────────────────────────────────────────────
+# Contienen rutas personales y metadatos extraídos de los archivos CAD del
+# usuario; cada instalación genera la suya al arrancar.
+*.db
+*.db-shm
+*.db-wal
+
+# ── Logs ────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Secretos ────────────────────────────────────────────────────────────
+# La clave DocManager (SwDmLicenseKey) JAMÁS se versiona: vive en user-secrets,
+# variable de entorno o cifrada con DPAPI en la BD (ver ServicioLicencias).
+*.user
+secrets.json
+
+# ── Paquete distribuible ────────────────────────────────────────────────
+# Los ZIP self-contained pesan ~128 MB y EXCEDEN el límite de 100 MB por
+# archivo de GitHub (el push fallaría). Distribuir por Releases, no por git.
+dist/
+
+# ── IDEs y herramientas ─────────────────────────────────────────────────
+.vs/
+.vscode/
+.idea/
+*.suo
+*.DotSettings.user
+
+# ── Claude Code (config local de la máquina, no compartible) ────────────
+.claude/settings.local.json
+
+# Diagramas: mantener .dot (fuente) y .svg (generado) versionados; no ignorar.
+# Las capturas de pantalla del README (docs/capturas/*.png) SÍ se versionan.

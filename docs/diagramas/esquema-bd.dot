@@ -1,0 +1,121 @@
+digraph esquema_bd {
+  rankdir=LR;
+  fontname="Helvetica"; fontsize=16; label="SWDataExtractor — Esquema BD"; labelloc=t;
+  node [fontname="Helvetica", fontsize=10, shape=plain];
+  edge [fontname="Helvetica", fontsize=9];
+
+  archivos [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#eef4fb">
+      <tr><td bgcolor="#2b6cb0"><font color="white"><b>archivos</b></font></td></tr>
+      <tr><td align="left">id PK · ruta UQ · nombre · tipo</td></tr>
+      <tr><td align="left">hash_sha256 · tamano · fecha_mod_disco</td></tr>
+      <tr><td align="left">version_sw · autor · ruta_preview</td></tr>
+      <tr><td align="left">fecha/estado extr_rapida y extr_profunda</td></tr>
+      <tr><td align="left">mensaje_error · origen · datos_extra_json</td></tr>
+    </table>>];
+
+  configuraciones [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#eefbf0">
+      <tr><td bgcolor="#2f855a"><font color="white"><b>configuraciones</b></font></td></tr>
+      <tr><td align="left">id PK · archivo_id FK</td></tr>
+      <tr><td align="left">nombre · es_activa · es_derivada</td></tr>
+    </table>>];
+
+  propiedades [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#eefbf0">
+      <tr><td bgcolor="#2f855a"><font color="white"><b>propiedades</b></font></td></tr>
+      <tr><td align="left">id PK · archivo_id FK · configuracion_id FK?</td></tr>
+      <tr><td align="left">nombre · valor · valor_resuelto · tipo</td></tr>
+    </table>>];
+
+  fisicas [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#eefbf0">
+      <tr><td bgcolor="#2f855a"><font color="white"><b>propiedades_fisicas</b></font></td></tr>
+      <tr><td align="left">archivo_id FK · configuracion_id FK</td></tr>
+      <tr><td align="left">material · densidad · masa · volumen · area</td></tr>
+    </table>>];
+
+  componentes [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#fbeeee">
+      <tr><td bgcolor="#c53030"><font color="white"><b>componentes</b></font></td></tr>
+      <tr><td align="left">ensamble_archivo_id FK · ensamble_config_id FK</td></tr>
+      <tr><td align="left">componente_archivo_id FK? · ruta_referenciada</td></tr>
+      <tr><td align="left">configuracion_usada · cantidad · suprimido</td></tr>
+      <tr><td align="left">es_toolbox · es_envelope · datos_extra_json</td></tr>
+    </table>>];
+
+  features [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#fdf6d8">
+      <tr><td bgcolor="#b7791f"><font color="white"><b>features</b></font></td></tr>
+      <tr><td align="left">id PK · archivo_id FK · nombre</td></tr>
+      <tr><td align="left">tipo_sw · categoria · parametros_json</td></tr>
+      <tr><td align="left">suprimido · orden</td></tr>
+    </table>>];
+
+  roscas [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#fdf6d8">
+      <tr><td bgcolor="#b7791f"><font color="white"><b>roscas</b></font></td></tr>
+      <tr><td align="left">id PK · archivo_id FK · feature_id FK</td></tr>
+      <tr><td align="left">designacion · estandar · tipo_barreno</td></tr>
+      <tr><td align="left">diametro · paso/hpp · profundidades</td></tr>
+      <tr><td align="left">pasante · cantidad</td></tr>
+    </table>>];
+
+  diccionario [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3eefb">
+      <tr><td bgcolor="#6b46c1"><font color="white"><b>diccionario_propiedades</b></font></td></tr>
+      <tr><td align="left">nombre UQ · tipo · valores_permitidos</td></tr>
+      <tr><td align="left">obligatoria · nivel · activa</td></tr>
+    </table>>];
+
+  historial [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3eefb">
+      <tr><td bgcolor="#6b46c1"><font color="white"><b>historial_propiedades</b></font></td></tr>
+      <tr><td align="left">lote_id · archivo_id FK · configuracion</td></tr>
+      <tr><td align="left">propiedad · valor_anterior · valor_nuevo</td></tr>
+      <tr><td align="left">usuario · fecha · resultado</td></tr>
+    </table>>];
+
+  trabajos [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f0f0f0">
+      <tr><td bgcolor="#4a5568"><font color="white"><b>trabajos_extraccion</b></font></td></tr>
+      <tr><td align="left">archivo_id FK · tipo · estado · intentos</td></tr>
+      <tr><td align="left">fechas · duracion_ms · mensaje</td></tr>
+    </table>>];
+
+
+  etiquetas [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#e6fffa">
+      <tr><td bgcolor="#2c7a7b"><font color="white"><b>etiquetas</b></font></td></tr>
+      <tr><td align="left">id PK · nombre UQ · color</td></tr>
+      <tr><td align="left">descripcion · activa</td></tr>
+    </table>>];
+
+  archivo_etiquetas [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#e6fffa">
+      <tr><td bgcolor="#2c7a7b"><font color="white"><b>archivo_etiquetas</b></font></td></tr>
+      <tr><td align="left">archivo_id FK · etiqueta_id FK</td></tr>
+    </table>>];
+
+  ajustes_app [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f0f0f0">
+      <tr><td bgcolor="#4a5568"><font color="white"><b>ajustes_app</b></font></td></tr>
+      <tr><td align="left">clave UQ · valor · descripcion</td></tr>
+    </table>>];
+
+  archivo_etiquetas -> archivos;
+  archivo_etiquetas -> etiquetas;
+
+  configuraciones -> archivos [label="N:1"];
+  propiedades -> archivos [label="N:1"];
+  propiedades -> configuraciones [label="N:1?", style=dashed];
+  fisicas -> archivos; fisicas -> configuraciones;
+  componentes -> archivos [label="padre"];
+  componentes -> archivos [label="hijo?", style=dashed];
+  componentes -> configuraciones [label="config padre"];
+  features -> archivos;
+  roscas -> archivos; roscas -> features;
+  historial -> archivos;
+  trabajos -> archivos;
+  diccionario [group=g1];
+}

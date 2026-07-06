@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\SWDataExtractor.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Ruta de instalación de SolidWorks — ajustar si difiere en otra máquina -->
+  <PropertyGroup>
+    <SwApiRedist>C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\api\redist</SwApiRedist>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="SolidWorks.Interop.swdocumentmgr">
+      <HintPath>$(SwApiRedist)\SolidWorks.Interop.swdocumentmgr.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

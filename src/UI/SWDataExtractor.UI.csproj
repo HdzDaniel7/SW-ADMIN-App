@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\SWDataExtractor.Core.csproj" />
+    <ProjectReference Include="..\Data\SWDataExtractor.Data.csproj" />
+    <ProjectReference Include="..\Application\SWDataExtractor.Application.csproj" />
+    <ProjectReference Include="..\DocManager\SWDataExtractor.DocManager.csproj" />
+    <ProjectReference Include="..\SwApi\SWDataExtractor.SwApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="*" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="*" />
+    <PackageReference Include="WPF-UI" Version="*" />
+    <!-- Mismos paquetes de logging ya usados por el Batch: la UI ahora también deja rastro
+         en archivo para poder diagnosticar fallos en máquinas de usuarios. -->
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="*" />
+    <PackageReference Include="Serilog.Sinks.File" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <Version>1.1.0</Version>
+    <Product>SWDataExtractor</Product>
+    <AssemblyTitle>SWDataExtractor</AssemblyTitle>
+    <Description>Extracción y gestión de datos de archivos SolidWorks</Description>
+    <ApplicationIcon>Recursos\app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+</Project>

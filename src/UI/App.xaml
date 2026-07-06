@@ -1,0 +1,58 @@
+<Application x:Class="SWDataExtractor.UI.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Tema Fluent (Windows 11) — reestiliza automáticamente todos los controles
+                     nativos (Button, DataGrid, TextBox, ComboBox, TabControl, etc.). El tema
+                     inicial es Light; ServicioTema aplica el guardado al arrancar. -->
+                <ui:ThemesDictionary Theme="Light"/>
+                <ui:ControlsDictionary/>
+                <!-- Paleta propia inicial (Plano técnico); ServicioTema la intercambia con
+                     TemaConsola.xaml al cambiar de tema. Debe ir DESPUÉS del tema base. -->
+                <ResourceDictionary Source="Temas/TemaPlanoTecnico.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="MinWidth" Value="80"/>
+            </Style>
+
+            <!-- Un solo lugar para que TODOS los DataGrid de la app respeten el tema activo.
+                 Antes cada vista fijaba AlternatingRowBackground="#F5F5F5" a mano (color fijo,
+                 no cambiaba con el tema — por eso el grid se veía blanco siempre). Ahora:
+                 fondo base = superficie del tema (blanco en claro / panel oscuro en Consola),
+                 filas alternas = fondo de la app (un tono ligeramente distinto de la superficie,
+                 da el efecto "cebra" sin hardcodear nada), líneas y bordes = divisor del tema. -->
+            <!-- Encabezados de columna con más presencia (semibold + texto secundario);
+                 hereda del estilo base de WPF-UI para no perder plantilla/ordenamiento. -->
+            <Style x:Key="SwdeEncabezadoColumna" TargetType="DataGridColumnHeader"
+                   BasedOn="{StaticResource DefaultDataGridColumnHeaderStyle}">
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+            </Style>
+
+            <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+                <Setter Property="CanUserAddRows" Value="False"/>
+                <Setter Property="CanUserDeleteRows" Value="False"/>
+                <Setter Property="SelectionUnit" Value="FullRow"/>
+                <Setter Property="HeadersVisibility" Value="Column"/>
+                <Setter Property="RowHeight" Value="32"/>
+                <Setter Property="ColumnHeaderStyle" Value="{StaticResource SwdeEncabezadoColumna}"/>
+                <!-- Foreground explícito: el heredado del estilo base (ListViewItemForeground)
+                     no se re-resolvía al alternar el tema en vivo y las celdas quedaban con el
+                     color del tema anterior (texto oscuro sobre fondo oscuro). -->
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+                <Setter Property="RowBackground" Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+                <Setter Property="AlternatingRowBackground" Value="{DynamicResource SwdeFilaAlternaBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

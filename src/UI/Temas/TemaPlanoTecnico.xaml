@@ -1,0 +1,23 @@
+<!-- Tema claro "Plano técnico": blanco de papel de dibujo con matiz azul.
+     Este diccionario se agrega AL FINAL de los MergedDictionaries en cada cambio de tema
+     (ver ServicioTema.Aplicar), por lo que sus claves ganan sobre el tema base de WPF-UI.
+     Reemplaza el enfoque anterior de asignar brushes sueltos a Application.Current.Resources,
+     que dejaba claves viejas sombreando al tema nuevo al alternar claro/oscuro. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Claves de WPF-UI que sombreamos deliberadamente -->
+    <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#EAF1FA"/>
+    <SolidColorBrush x:Key="WindowBackground" Color="#EAF1FA"/>
+    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="DividerStrokeColorDefaultBrush" Color="#C3D2E2"/>
+
+    <!-- Pestaña activa: borde y fondo con el acento (el color lo actualiza
+         ApplicationAccentColorManager en cada cambio de tema, por eso DynamicResource) -->
+    <SolidColorBrush x:Key="TabViewSelectedItemBorderBrush" Color="{DynamicResource SystemAccentColorSecondary}"/>
+    <SolidColorBrush x:Key="TabViewItemHeaderBackgroundSelected" Opacity="0.14" Color="{DynamicResource SystemAccentColorSecondary}"/>
+
+    <!-- Claves propias de la app -->
+    <SolidColorBrush x:Key="SwdeBarraTituloBrush" Color="#F4F8FD"/>
+    <SolidColorBrush x:Key="SwdeFilaAlternaBrush" Color="#F3F7FC"/>
+</ResourceDictionary>

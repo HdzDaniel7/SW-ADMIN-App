@@ -1,0 +1,50 @@
+digraph arquitectura {
+  rankdir=TB;
+  fontname="Helvetica"; node [fontname="Helvetica", shape=box, style="rounded,filled", fillcolor=white];
+  edge [fontname="Helvetica", fontsize=10];
+  label="SWDataExtractor — Arquitectura"; labelloc=t; fontsize=16;
+
+  subgraph cluster_ui {
+    label="Presentación"; style=filled; fillcolor="#eef4fb";
+    UI [label="UI WPF\n(grilla, detalle, cola, export Excel)"];
+    CLI [label="Batch CLI\n(escaneo programado)"];
+  }
+
+  subgraph cluster_core {
+    label="Core (servicios y contratos)"; style=filled; fillcolor="#eefbf0";
+    Orq [label="OrquestadorExtraccion\n(modo Rápido/Profundo/Auto)"];
+    Esc [label="EscaneadorCarpetas\n(hash, incremental)"];
+    Bom [label="ServicioBom\n(indentado, aplanado,\nwhere-used, diff)"];
+    Prop [label="ServicioPropiedades\n(lectura, lotes de escritura,\nhistorial)"];
+    Analisis [label="ServicioAnalisisProyecto (F7a)\n(explorador, duplicados, rotas,\nversiones, salud de proyecto)\nsolo BD — sin SW ni licencia"];
+    IFaz [label="IExtractorCad /\nIEscritorPropiedades", shape=component, fillcolor="#fdf6d8"];
+  }
+
+  subgraph cluster_ext {
+    label="Adaptadores de extracción"; style=filled; fillcolor="#fbeeee";
+    DM [label="DocManager\n(rápido, sin abrir SW)\npropiedades · estructura ·\nfísicas · preview · escritura"];
+    STEPX [label="ExtractorStep (Application)\n(.stp/.step, sin SW ni licencia)\nencabezado ISO-10303-21:\nnombre · autor · organización ·\nsistema origen · esquema AP"];
+    SWA [label="SwApi (COM)\n(profundo, requiere SW)\nfeatures · roscas · chaflanes\ntimeout · reinicio · ComScope"];
+  }
+
+  subgraph cluster_data {
+    label="Datos"; style=filled; fillcolor="#f3eefb";
+    BD [label="SQLite / SQL Server (EF Core)\n13 tablas · auto-detección de proveedor", shape=cylinder];
+  }
+
+  subgraph cluster_roles {
+    label="Roles y permisos (F6)"; style=filled; fillcolor="#fef9e7";
+    Roles [label="ServicioRoles\n(Visualizador/Operador/Admin)\npersistido en ajustes_app"];
+    FuncVm [label="FuncionalidadesViewModel\n(singleton · bindings UI)\n5 flags de funcionalidad"];
+  }
+
+  SW [label="SolidWorks\n(instalado + licencia)", shape=box3d, fillcolor="#f0f0f0"];
+  FS [label="Carpetas de diseños\n(.SLDPRT / .SLDASM / .STP / .STEP)", shape=folder, fillcolor="#f0f0f0"];
+
+  UI -> Orq; UI -> Bom; UI -> Prop; UI -> Analisis; CLI -> Esc; CLI -> Orq;
+  Esc -> BD; Orq -> IFaz; Prop -> IFaz;
+  IFaz -> DM; IFaz -> STEPX; IFaz -> SWA;
+  DM -> FS [label="lee/escribe"]; STEPX -> FS [label="lee encabezado"]; SWA -> SW [label="COM"]; SW -> FS;
+  Orq -> BD; Bom -> BD; Prop -> BD; Analisis -> BD;
+  Roles -> BD [label="ajustes_app"]; Roles -> FuncVm [label="aplica"]; UI -> FuncVm [label="bind"];
+}

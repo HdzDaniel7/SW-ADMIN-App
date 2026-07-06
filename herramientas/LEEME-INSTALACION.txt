@@ -1,0 +1,44 @@
+SWDataExtractor — Instalación
+=============================
+
+REQUISITOS
+  - Windows 10 u 11 de 64 bits. Nada más: no requiere instalar .NET ni otras librerías.
+  - SolidWorks es OPCIONAL: sin él podés navegar los datos ya extraídos, ver BOM y reportes.
+    Con SolidWorks instalado se habilitan las miniaturas y la extracción de datos.
+
+INSTALAR (portable, sin instalador)
+  1. Copiá la carpeta SWDataExtractor completa (o descomprimí el ZIP) donde quieras,
+     p. ej. C:\SWDataExtractor o D:\Herramientas\SWDataExtractor.
+     Evitá "C:\Archivos de programa" (la app guarda su base de datos junto al ejecutable).
+  2. Abrí SWDataExtractor.UI.exe (doble clic).
+  3. Para el acceso directo del escritorio, cualquiera de las dos opciones:
+       - Dentro de la app: menú Herramientas → "Crear acceso directo en el escritorio".
+       - Sin abrir la app: clic derecho sobre "Crear acceso directo.ps1" →
+         "Ejecutar con PowerShell".
+
+PRIMEROS PASOS
+  1. Herramientas → Configuración → pestaña "Configuración actual" → agregar las carpetas
+     donde viven tus archivos de SolidWorks y Guardar (escanea automáticamente).
+  2. Botón "⏬ Extraer todos" para extraer los datos de todos los archivos encontrados.
+  3. La sección "Explorador" del menú lateral tiene los reportes: duplicados, referencias
+     rotas, posibles versiones, cumplimiento y el dashboard por proyecto.
+
+DÓNDE GUARDA SUS DATOS
+  - Base de datos:  swdata.db, junto al ejecutable (portable: copiá la carpeta y va con ella).
+  - Registros/logs: %LOCALAPPDATA%\SWDataExtractor\logs
+  - Miniaturas:     %LOCALAPPDATA%\SWDataExtractor\previews
+
+EXTRACCIÓN PROGRAMADA (opcional)
+  SWDataExtractor.Batch.exe escanea y extrae sin abrir la interfaz. Se registra como tarea
+  programada de Windows desde: Herramientas → Configuración → pestaña "Tarea programada".
+
+BASE DE DATOS COMPARTIDA EN RED (opcional, avanzado)
+  Editá appsettings.json (junto al exe) y cambiá la cadena de conexión a un SQL Server:
+      "BaseDatos": { "CadenaConexion": "Server=MI-SERVIDOR;Database=swdata;Trusted_Connection=True;TrustServerCertificate=True" }
+  Todos los equipos que apunten al mismo servidor comparten los mismos datos.
+
+LICENCIA DOCUMENT MANAGER (opcional)
+  Si tu empresa tiene una clave SwDmLicenseKey de SolidWorks, cargala en
+  Herramientas → Configuración → pestaña "Licencias". Habilita la extracción rápida sin
+  necesidad de tener SolidWorks abierto. Sin la clave, la app funciona igual usando
+  SolidWorks abierto para extraer.

@@ -1,0 +1,189 @@
+<UserControl x:Class="SWDataExtractor.UI.Views.DetalleArchivoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:SWDataExtractor.UI.Converters">
+
+    <UserControl.Resources>
+        <conv:NuloAVisibilidadConverter x:Key="NullABoolVis"/>
+        <BooleanToVisibilityConverter x:Key="BoolVisDetalle"/>
+    </UserControl.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Encabezado: nombre + preview -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="120"/>
+                <ColumnDefinition Width="Auto" MaxWidth="110"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{Binding Archivo.Nombre}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding Archivo.Ruta}"   FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                <WrapPanel Margin="0,4">
+                    <TextBlock Text="Tipo: "    FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Archivo.Tipo}" Margin="0,0,16,0"/>
+                    <TextBlock Text="Versión SW: " FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Archivo.VersionSw}" Margin="0,0,16,0"/>
+                    <TextBlock Text="Autor: "   FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Archivo.Autor}"/>
+                </WrapPanel>
+                <!-- Solo ensambles: las pestañas de datos muestran también las piezas del BOM
+                     (columna "Componente" indica el origen; el Excel exportado lo hereda). -->
+                <CheckBox Content="Incluir componentes del BOM en las pestañas"
+                          IsChecked="{Binding IncluirComponentesBom}"
+                          Visibility="{Binding EsEnsamble, Converter={StaticResource BoolVisDetalle}}"
+                          Margin="0,4,0,0" FontSize="12"/>
+            </StackPanel>
+
+            <Border Grid.Column="1" BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="1" Margin="8,0,0,0"
+                    Visibility="{Binding Preview, Converter={StaticResource NullABoolVis}}">
+                <Image Source="{Binding Preview}" Stretch="Uniform" MaxHeight="100" MaxWidth="100"/>
+            </Border>
+        </Grid>
+
+        <!-- Pestañas de detalle -->
+        <TabControl Grid.Row="1">
+
+            <!-- Propiedades -->
+            <TabItem Header="Propiedades">
+                <DockPanel>
+                    <ToolBar DockPanel.Dock="Top">
+                        <Button Content="📥 Exportar Excel" Command="{Binding ExportarPropiedadesCommand}"/>
+                    </ToolBar>
+                    <DataGrid ItemsSource="{Binding Propiedades}"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Componente"   Binding="{Binding Componente}"   Width="140"/>
+                            <DataGridTextColumn Header="Nombre"       Binding="{Binding Nombre}"       Width="200"/>
+                            <DataGridTextColumn Header="Configuración" Binding="{Binding Configuracion}" Width="130"/>
+                            <DataGridTextColumn Header="Valor"        Binding="{Binding Valor}"        Width="160"/>
+                            <DataGridTextColumn Header="Valor Resuelto" Binding="{Binding ValorResuelto}" Width="160"/>
+                            <DataGridTextColumn Header="Tipo"         Binding="{Binding Tipo}"         Width="80"/>
+                            <DataGridCheckBoxColumn Header="Estándar" Binding="{Binding EsEstandar}"   Width="70"/>
+                            <DataGridCheckBoxColumn Header="Obligatoria" Binding="{Binding EsObligatoria}" Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- Configuraciones -->
+            <TabItem Header="Configuraciones">
+                <DataGrid ItemsSource="{Binding Configuraciones}"
+                          AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Componente" Binding="{Binding Componente}"  Width="140"/>
+                        <DataGridTextColumn Header="Nombre"    Binding="{Binding C.Nombre}"    Width="200"/>
+                        <DataGridCheckBoxColumn Header="Activa"    Binding="{Binding C.EsActiva}" Width="70"/>
+                        <DataGridCheckBoxColumn Header="Derivada"  Binding="{Binding C.EsDerivada}" Width="70"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- BOM -->
+            <TabItem Header="BOM">
+                <DockPanel>
+                    <ToolBar DockPanel.Dock="Top">
+                        <Button Content="📊 Exportar BOM Excel" Command="{Binding ExportarBomExcelCommand}"/>
+                        <Separator/>
+                        <Button Content="☑ Marcar todos" Command="{Binding MarcarTodosBomCommand}"/>
+                        <Button Content="☐ Desmarcar todos" Command="{Binding DesmarcarTodosBomCommand}"/>
+                    </ToolBar>
+                    <DataGrid ItemsSource="{Binding Bom}"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <!-- DataGridTemplateColumn con CheckBox explícito en vez de
+                                 DataGridCheckBoxColumn: esta última requiere 2 clics (el primero
+                                 solo selecciona la celda, recién el segundo entra en modo edición
+                                 y togglea) — con plantilla el CheckBox responde al primer clic,
+                                 igual que los botones 📄/📂 de ArchivosView. -->
+                            <DataGridTemplateColumn Header="Incluir" Width="55" CanUserSort="False">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding Incluido, Mode=TwoWay}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Nivel"     Binding="{Binding Item.Nivel}"          Width="50"/>
+                            <DataGridTextColumn Header="Nombre"    Binding="{Binding Item.Nombre}"         Width="200"/>
+                            <DataGridTextColumn Header="Tipo"      Binding="{Binding Item.Tipo}"           Width="80"/>
+                            <!-- En tornillería Toolbox la configuración lleva la designación (M8x1.25, etc.) -->
+                            <DataGridTextColumn Header="Configuración" Binding="{Binding Item.ConfiguracionUsada}" Width="120"/>
+                            <DataGridTextColumn Header="Cantidad"  Binding="{Binding Item.CantidadEnPadre}" Width="70"/>
+                            <DataGridCheckBoxColumn Header="Toolbox"  Binding="{Binding Item.EsToolbox}"   Width="65"/>
+                            <DataGridTextColumn Header="Ruta"      Binding="{Binding Item.Ruta}"           Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
+            <!-- Where-used -->
+            <TabItem Header="Usado en">
+                <DataGrid ItemsSource="{Binding WhereUsed}"
+                          AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Ensamble"      Binding="{Binding EnsambleNombre}"   Width="200"/>
+                        <DataGridTextColumn Header="Configuración"  Binding="{Binding ConfiguracionUsada}" Width="130"/>
+                        <DataGridTextColumn Header="Cantidad"       Binding="{Binding Cantidad}"        Width="70"/>
+                        <DataGridTextColumn Header="Ruta"           Binding="{Binding EnsambleRuta}"    Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- Features (extracción profunda) -->
+            <TabItem Header="Features">
+                <DataGrid ItemsSource="{Binding Features}"
+                          AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Componente" Binding="{Binding Componente}" Width="140"/>
+                        <DataGridTextColumn Header="Nombre"    Binding="{Binding F.Nombre}"    Width="200"/>
+                        <DataGridTextColumn Header="Tipo SW"   Binding="{Binding F.TipoSw}"    Width="120"/>
+                        <DataGridTextColumn Header="Categoría" Binding="{Binding F.Categoria}" Width="110"/>
+                        <DataGridCheckBoxColumn Header="Suprimido" Binding="{Binding F.Suprimido}" Width="75"/>
+                        <DataGridTextColumn Header="Orden"     Binding="{Binding F.Orden}"     Width="60"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- Propiedades físicas (extracción profunda) -->
+            <TabItem Header="Físicas">
+                <DataGrid ItemsSource="{Binding PropsFisicas}"
+                          AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Componente"   Binding="{Binding Componente}"        Width="140"/>
+                        <DataGridTextColumn Header="Material"     Binding="{Binding F.Material}"        Width="160"/>
+                        <DataGridTextColumn Header="Densidad (kg/m³)" Binding="{Binding F.DensidadKgM3, StringFormat={}{0:N2}}" Width="110"/>
+                        <DataGridTextColumn Header="Masa (kg)"    Binding="{Binding F.MasaKg,     StringFormat={}{0:N4}}" Width="90"/>
+                        <DataGridTextColumn Header="Volumen (m³)" Binding="{Binding F.VolumenM3,   StringFormat={}{0:E3}}"  Width="110"/>
+                        <DataGridTextColumn Header="Área (m²)"   Binding="{Binding F.AreaM2,      StringFormat={}{0:E3}}"  Width="110"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- Roscas -->
+            <TabItem Header="Roscas">
+                <DataGrid ItemsSource="{Binding Roscas}"
+                          AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Componente"     Binding="{Binding Componente}"       Width="140"/>
+                        <DataGridTextColumn Header="Designación"    Binding="{Binding R.Designacion}"      Width="130"/>
+                        <DataGridTextColumn Header="Estándar"       Binding="{Binding R.Estandar}"         Width="90"/>
+                        <DataGridTextColumn Header="Tipo"           Binding="{Binding R.TipoBarreno}"      Width="100"/>
+                        <DataGridTextColumn Header="Ø Nom. (mm)"   Binding="{Binding R.DiametroNominalMm}" Width="90"/>
+                        <DataGridTextColumn Header="Paso (mm)"      Binding="{Binding R.PasoMm}"           Width="80"/>
+                        <DataGridTextColumn Header="Hilos/pulg"     Binding="{Binding R.HilosPorPulgada}"  Width="80"/>
+                        <DataGridTextColumn Header="Prof. Rosca"    Binding="{Binding R.ProfundidadRoscaMm}" Width="90"/>
+                        <DataGridCheckBoxColumn Header="Pasante"    Binding="{Binding R.Pasante}"          Width="65"/>
+                        <DataGridTextColumn Header="Cantidad"       Binding="{Binding R.Cantidad}"         Width="70"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</UserControl>

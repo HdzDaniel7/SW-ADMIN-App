@@ -1,0 +1,47 @@
+<UserControl x:Class="SWDataExtractor.UI.Views.HistorialView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:SWDataExtractor.UI.Converters">
+
+    <UserControl.Resources>
+        <conv:EstadoColorConverter x:Key="EstadoColor"/>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <ToolBar DockPanel.Dock="Top">
+            <Button Content="↺ Recargar" Command="{Binding CargarCommand}" Margin="2"/>
+            <Separator/>
+            <TextBlock VerticalAlignment="Center" Margin="4,0" Text="Propiedad:"/>
+            <TextBox Text="{Binding FiltroPropiedad, UpdateSourceTrigger=PropertyChanged}"
+                     Width="140" Margin="2" VerticalContentAlignment="Center"/>
+            <TextBlock VerticalAlignment="Center" Margin="4,0" Text="Usuario:"/>
+            <TextBox Text="{Binding FiltroUsuario, UpdateSourceTrigger=PropertyChanged}"
+                     Width="120" Margin="2" VerticalContentAlignment="Center"/>
+        </ToolBar>
+
+        <DataGrid ItemsSource="{Binding Historial}"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+
+                  CanUserResizeRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Fecha"          Binding="{Binding Fecha}"              Width="155"/>
+                <DataGridTextColumn Header="Lote"           Binding="{Binding LoteId}"             Width="80"/>
+                <DataGridTextColumn Header="Archivo"        Binding="{Binding Archivo.Nombre}"     Width="190"/>
+                <DataGridTextColumn Header="Configuración"  Binding="{Binding Configuracion}"      Width="110"/>
+                <DataGridTextColumn Header="Propiedad"      Binding="{Binding Propiedad}"          Width="140"/>
+                <DataGridTextColumn Header="Valor anterior" Binding="{Binding ValorAnterior}"      Width="140"/>
+                <DataGridTextColumn Header="Valor nuevo"    Binding="{Binding ValorNuevo}"         Width="140"/>
+                <DataGridTextColumn Header="Usuario"        Binding="{Binding Usuario}"            Width="100"/>
+                <DataGridTemplateColumn Header="Resultado"  Width="90">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Resultado}"
+                                       Foreground="{Binding Resultado, Converter={StaticResource EstadoColor}}"
+                                       FontWeight="SemiBold" Margin="4,0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>
