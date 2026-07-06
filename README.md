@@ -24,7 +24,7 @@ auditoría.
 
 | Detalle con BOM y propiedades | Configuración |
 |---|---|
-| ![Detalle](docs/capturas/detalle-bom.png) | ![Configuración](docs/capturas/configuración.png) |
+| ![Detalle](docs/capturas/detalle-bom.png) | ![Configuración](docs/capturas/Configuración.png) |
 
 *(Las imágenes viven en `docs/capturas/` — ver `docs/capturas/LEEME.txt` para regenerarlas.)*
 
